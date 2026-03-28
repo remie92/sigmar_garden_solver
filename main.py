@@ -3,7 +3,7 @@ STATIC_SCREEN_POSITIONS=True
 
 from pynput import mouse
 import pyautogui
-from PIL import Image
+from PIL import Image,ImageDraw, ImageFont
 from time import sleep
 
 
@@ -75,16 +75,39 @@ full_img = pyautogui.screenshot()
 img = full_img.crop((crop_left, crop_top, crop_right, crop_bottom))
 img = img.resize((TARGET_WIDTH, TARGET_HEIGHT))
 
-for i in range(0,11):
-    i_center_dist=abs(5-i)
-    row_size=11-i_center_dist
-    for j in range(0,row_size):
-        middle_j=row_size/2-0.5
+numbered_img=img.copy()
 
-        pixel_x=int(screen_middle_width+(j-middle_j)*screen_horizontal_spacing)
-        pixel_y=int(i*screen_vertical_spacing+screen_start_height)
-        
-        print(i,j,pixel_x,pixel_y)
-        img.putpixel((pixel_x,pixel_y),(255,0,0))
+draw = ImageDraw.Draw(numbered_img)
 
+try:
+    font = ImageFont.truetype("arial.ttf", 20)
+except:
+    font = ImageFont.load_default()
+
+counter = 0
+
+for i in range(0, 11):
+    i_center_dist = abs(5 - i)
+    row_size = 11 - i_center_dist
+
+    for j in range(0, row_size):
+        middle_j = row_size / 2 - 0.5
+
+        pixel_x = int(screen_middle_width + (j - middle_j) * screen_horizontal_spacing)
+        pixel_y = int(i * screen_vertical_spacing + screen_start_height)
+
+        text = str(counter)
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+        draw.text(
+            (pixel_x - text_w // 2, pixel_y - text_h // 2),
+            text,
+            fill=(255, 0, 0),
+            font=font
+        )
+
+        counter += 1
+
+numbered_img.show()
 img.show()
