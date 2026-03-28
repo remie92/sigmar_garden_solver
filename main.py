@@ -6,14 +6,14 @@ import pyautogui
 from PIL import Image,ImageDraw, ImageFont
 from time import sleep
 
-from marble_detector import get_type_from_image
+from marble_detector import MarbleDetector
 
 from board import Board
 start_board=Board()
 
 
 
-
+marble_detector=MarbleDetector()
 
 
 clicks = []
@@ -77,8 +77,10 @@ img = full_img.crop((crop_left, crop_top, crop_right, crop_bottom))
 img = img.resize((TARGET_WIDTH, TARGET_HEIGHT))
 
 numbered_img=img.copy()
+type_img=img.copy()
 
 draw = ImageDraw.Draw(numbered_img)
+draw_type=ImageDraw.Draw(type_img)
 
 try:
     font = ImageFont.truetype("arial.ttf", 20)
@@ -114,9 +116,15 @@ for i in range(0, 11):
         half=detection_size//2
 
         cropped=img.crop((pixel_x-half,pixel_y-half,pixel_x+half,pixel_y+half))
-        print(get_type_from_image(cropped))
+        type=marble_detector.get_type_from_image(cropped)
+        draw_type.text(
+            (pixel_x - text_w // 2, pixel_y - text_h // 2),
+            type,
+            fill=(255, 0, 0),
+            font=font
+        )
+        print(f"Processing image! At {int((counter/91)*100)}%")
 
-    exit()
-
+type_img.show()
 numbered_img.show()
 img.show()
