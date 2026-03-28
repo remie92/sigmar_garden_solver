@@ -1,3 +1,6 @@
+STATIC_SCREEN_POSITIONS=True
+
+
 from pynput import mouse
 import pyautogui
 from PIL import Image
@@ -11,21 +14,32 @@ start_board=Board()
 
 
 
+
 clicks = []
 TARGET_WIDTH = 833
 TARGET_HEIGHT = 688
 TARGET_RATIO = TARGET_WIDTH / TARGET_HEIGHT
 
-def on_click(x, y, button, pressed):
-    if pressed:
-        print(f"Clicked at: ({x}, {y})")
-        clicks.append((x, y))
-        if len(clicks) == 3:
-            return False  
+screen_start_height=59
+screen_middle_width=TARGET_WIDTH/2
+screen_vertical_spacing=(630-59)/10
+screen_horizontal_spacing=(747-84)/10
 
-with mouse.Listener(on_click=on_click) as listener:
-    print("Click the top left of the dark background, and then the center dot of the golden marble. Lastly, the bottom right. The border of the dark triangles count as the background")
-    listener.join()
+if STATIC_SCREEN_POSITIONS==False:
+    def on_click(x, y, button, pressed):
+        if pressed:
+            print(f"Clicked at: ({x}, {y})")
+            clicks.append((x, y))
+            if len(clicks) == 3:
+                return False  
+
+    with mouse.Listener(on_click=on_click) as listener:
+        print("Click the top left of the dark background, and then the center dot of the golden marble. Lastly, the bottom right. The border of the dark triangles count as the background")
+        listener.join()
+else:
+    clicks.append((2722, 162))
+    clicks.append((3138, 505))
+    clicks.append((3556, 850))
 
 
 (screen_x1,screen_y1),(screen_middle_x,screen_middle_y),(screen_x2,screen_y2)= clicks
@@ -60,5 +74,17 @@ full_img = pyautogui.screenshot()
 
 img = full_img.crop((crop_left, crop_top, crop_right, crop_bottom))
 img = img.resize((TARGET_WIDTH, TARGET_HEIGHT))
+
+for i in range(0,11):
+    i_center_dist=abs(5-i)
+    row_size=11-i_center_dist
+    for j in range(0,row_size):
+        middle_j=row_size/2-0.5
+
+        pixel_x=int(screen_middle_width+(j-middle_j)*screen_horizontal_spacing)
+        pixel_y=int(i*screen_vertical_spacing+screen_start_height)
+        
+        print(i,j,pixel_x,pixel_y)
+        img.putpixel((pixel_x,pixel_y),(255,0,0))
 
 img.show()
