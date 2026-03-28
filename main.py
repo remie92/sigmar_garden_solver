@@ -6,6 +6,7 @@ import pyautogui
 from PIL import Image,ImageDraw, ImageFont
 from time import sleep
 
+from marble_detector import get_type_from_image
 
 from board import Board
 start_board=Board()
@@ -108,6 +109,14 @@ for i in range(0, 11):
         )
 
         counter += 1
+
+        detection_size=30
+        half=detection_size//2
+
+        cropped=img.crop((pixel_x-half,pixel_y-half,pixel_x+half,pixel_y+half))
+        print(get_type_from_image(cropped))
+
+    exit()
 
 numbered_img.show()
 img.show()
