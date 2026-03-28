@@ -1,0 +1,16 @@
+marble_types=[
+    "air",
+    "copper",
+    "earth",
+    "fire",
+    "gold",
+    "iron",
+    "lead",
+    "mors",
+    "quicksilver",
+    "salt",
+    "silver",
+    "tin",
+    "vitae",
+    "water"
+]
