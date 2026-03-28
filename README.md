@@ -1,4 +1,4 @@
-# sigmar_garden_solver
+# Opus Magnum Sigmar's Garden solver
 Sigmar's Garden is a  little game from Opus  Magnum. This python (hopefully) will solve it for ya!
 <img width="300" alt="image" src="https://github.com/user-attachments/assets/5a85cc76-a9f5-4f96-8397-7e3e85c89f1e" />
 
