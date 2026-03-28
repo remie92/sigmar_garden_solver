@@ -4,7 +4,7 @@ Sigmar's Garden is a  little game from Opus  Magnum. This python (hopefully) wil
 
 
 
-# Current plan:
+# Current capabilities:
 1. Make the user select the board
    <img width="1384" height="50" alt="image" src="https://github.com/user-attachments/assets/89111636-fee8-4c90-b577-055fad806bed" />
    
