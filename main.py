@@ -165,5 +165,10 @@ btn_done.pack()
 
 root.mainloop()
 
-# program continues here after GUI closes
-print("Final types:", final_types)
+
+
+
+#Finally doing some calculating!
+for i in range(len(final_types)):
+    start_board.set_type(final_types[i],i)
+print (start_board)
