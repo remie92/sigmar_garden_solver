@@ -23,6 +23,7 @@ class Solver:
                 break
 
             new_boards=checking_board.get_all_permutations()
+            new_boards.sort(key=lambda b: b.count_enabled_marbles(), reverse=True)
             for board in new_boards:
                 board_list.append(board)
             counter+=1

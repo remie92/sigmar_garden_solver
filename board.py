@@ -55,6 +55,13 @@ class Board:
                 count+=1
         return count
     
+    def count_enabled_marbles(self):
+        count=0
+        for i in range(91):
+            if self.is_enabled(i):
+                count+=1
+        return count
+    
 
     def won_game(self):
         for i in  range(91):
