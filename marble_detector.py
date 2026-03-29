@@ -1,63 +1,63 @@
+import numpy as np
 from marble_types import marble_types
 from PIL import Image
 from os import path
+
+
 class MarbleDetector:
     def __init__(self):
-        self.marble_images=[]
-        for type in marble_types:
-            self.marble_images.append((type,Image.open(path.abspath(f"marble_images/{type}_on.png")).convert("RGB")))
-            self.marble_images.append((type,Image.open(path.abspath(f"marble_images/{type}_off.png")).convert("RGB")))
-        self.marble_images.append(("empty",Image.open(path.abspath("marble_images/empty.png")).convert("RGB")))
-        self.counter=0
+        self.marble_images = []
 
-    def get_type_from_image(self, image):
-    
+        names = [(marble_type, suffix)
+                 for marble_type in marble_types
+                 for suffix in ("on", "off")]
+        names.append(("empty", None))
+
+        for entry in names:
+            marble_type, suffix = entry
+            filename = (f"{marble_type}_{suffix}.png" if suffix
+                        else "empty.png")
+            img = Image.open(
+                path.abspath(f"marble_images/{filename}")
+            ).convert("RGB")
+
+            arr = np.array(img, dtype=np.float32) / 255.0  # shape (H, W, 3), range 0-1
+            norm_color = self._normalize_color(arr.mean(axis=(0, 1)))
+
+            self.marble_images.append((marble_type, arr, norm_color))
+
+        self.counter = 0
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def get_type_from_image(self, image: Image.Image) -> str:
+        arr = np.array(image.convert("RGB"), dtype=np.float32) / 255.0
+        img_color = self._normalize_color(arr.mean(axis=(0, 1)))
+
+        h, w = arr.shape[:2]
+        # Brightness: mean across channels, shape (H, W)
+        img_brightness = arr.mean(axis=2)
+
         best_score = float("inf")
         best_type = None
 
-        img_pixels = image.load()
+        for marble_type, ref_arr, ref_color in self.marble_images:
+            color_score = self._color_distance(img_color, ref_color)
 
-        # Precompute image color ONCE (important for speed)
-        img_color = self.normalize_color(self.avg_color(image))
+            ref_brightness = ref_arr.mean(axis=2)
 
-        for marble_type, ref_img in self.marble_images:
-            ref_pixels = ref_img.load()
-
-            # Precompute ref color ONCE
-            ref_color = self.normalize_color(self.avg_color(ref_img))
-            color_score = self.color_distance(img_color, ref_color)
-
-            # Try small shifts
             for dx in range(-2, 3):
                 for dy in range(-2, 3):
                     self.counter += 1
-
-                    img_vals = []
-                    ref_vals = []
-
-                    for x in range(30):
-                        for y in range(30):
-                            rx = x + dx
-                            ry = y + dy
-
-                            if 0 <= rx < 30 and 0 <= ry < 30:
-                                img_vals.append(self.brightness(img_pixels[x, y]))
-                                ref_vals.append(self.brightness(ref_pixels[rx, ry]))
-
-                    if not img_vals:
+                    shape_score = self._shifted_shape_score(
+                        img_brightness, ref_brightness, dx, dy, h, w
+                    )
+                    if shape_score is None:
                         continue
 
-                    # Normalize brightness (remove gradient)
-                    img_avg = sum(img_vals) / len(img_vals)
-                    ref_avg = sum(ref_vals) / len(ref_vals)
-
-                    shape_score = 0
-                    for a, b in zip(img_vals, ref_vals):
-                        shape_score += abs((a - img_avg) - (b - ref_avg))
-
-                    shape_score /= len(img_vals)
-
-                    # 🔥 COMBINE BOTH SCORES HERE
+                    # Both scores are now in the same ~0-1 range
                     final_score = shape_score * 0.7 + color_score * 0.3
 
                     if final_score < best_score:
@@ -65,30 +65,44 @@ class MarbleDetector:
                         best_type = marble_type
 
         return best_type
-    
 
-    def brightness(self,p):
-        return (p[0] + p[1] + p[2]) / 3
-    
-    def avg_color(self,img):
-        pixels = img.load()
-        r = g = b = count = 0
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
 
-        for x in range(img.width):
-            for y in range(img.height):
-                pr, pg, pb = pixels[x, y]
-                r += pr
-                g += pg
-                b += pb
-                count += 1
+    @staticmethod
+    def _shifted_shape_score(
+        img_b: np.ndarray,
+        ref_b: np.ndarray,
+        dx: int, dy: int,
+        h: int, w: int,
+    ):
+        """Compare brightness patterns with a pixel shift applied to ref."""
+        # Compute the overlapping slice for img and shifted ref
+        x0_img = max(0, -dx);  x1_img = min(w, w - dx)
+        y0_img = max(0, -dy);  y1_img = min(h, h - dy)
+        x0_ref = max(0,  dx);  x1_ref = min(w, w + dx)
+        y0_ref = max(0,  dy);  y1_ref = min(h, h + dy)
 
-        return (r / count, g / count, b / count)
-    
-    def normalize_color(self,c):
-        total = c[0] + c[1] + c[2] + 1e-6
-        return (c[0]/total, c[1]/total, c[2]/total)
-    
-    def color_distance(self,c1, c2):
-        return abs(c1[0]-c2[0]) + abs(c1[1]-c2[1]) + abs(c1[2]-c2[2])
-            
+        img_patch = img_b[y0_img:y1_img, x0_img:x1_img]
+        ref_patch = ref_b[y0_ref:y1_ref, x0_ref:x1_ref]
 
+        if img_patch.size == 0:
+            return None
+
+        # Remove DC offset so we compare shape, not absolute brightness
+        img_norm = img_patch - img_patch.mean()
+        ref_norm = ref_patch - ref_patch.mean()
+
+        # MAE of normalised brightness — stays in 0-1 range because
+        # brightness was already normalised to 0-1
+        return float(np.abs(img_norm - ref_norm).mean())
+
+    @staticmethod
+    def _normalize_color(c: np.ndarray) -> np.ndarray:
+        total = c.sum() + 1e-6
+        return c / total
+
+    @staticmethod
+    def _color_distance(c1: np.ndarray, c2: np.ndarray) -> float:
+        return float(np.abs(c1 - c2).sum())
