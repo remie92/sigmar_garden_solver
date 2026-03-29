@@ -8,6 +8,7 @@ import tkinter as tk
 from marble_detector import MarbleDetector
 from marble_types import marble_types
 from board import Board
+from solver import Solver
 
 start_board = Board()
 marble_detector = MarbleDetector()
@@ -172,3 +173,8 @@ root.mainloop()
 for i in range(len(final_types)):
     start_board.set_type(final_types[i],i)
 print (start_board)
+
+solver=Solver()
+solver.set_board(start_board)
+solver.solve_board()
+print(solver.moves)
