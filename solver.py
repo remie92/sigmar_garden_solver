@@ -18,6 +18,8 @@ class Solver:
         if marble==None:
             return False
         
+    
+        
 
     def get_row_length(self,row):
         if row==0:
@@ -42,8 +44,6 @@ class Solver:
             return 7
         if row==10:
             return 6
-        
-        
 
     def index_to_row(self,index):
         if index<6:
