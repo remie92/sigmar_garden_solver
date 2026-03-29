@@ -12,6 +12,9 @@ class Board:
         else:
             self.board[index].set_type(type)
 
+    def get_marble(self,index):
+        return self.board[index]
+
     def __str__(self):
         output=""
         counter=0

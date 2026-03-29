@@ -85,6 +85,9 @@ for i in range(0, 11):
         positions.append((pixel_x, pixel_y))
         detected_types.append(m_type)
 
+
+
+
 # ---------------- GUI ----------------
 selected_index = None
 final_types = None

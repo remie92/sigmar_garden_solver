@@ -8,12 +8,12 @@ rules={
     "vitae":["mors"]
 }
 
-def is_valid(type1,type2,metal_order):
+def get_match(type1,type2,metal_order):
     if rules.get(type1)!=None:
         if type2 in  rules.get(type1):  #STATIC RULES
-            return True
+            return 1
         else:
-            return False
+            return 0
         
     if type2=="quicksilver":
         type2=type1
@@ -21,19 +21,18 @@ def is_valid(type1,type2,metal_order):
 
     if type1=="quicksilver":
         if metal_order==0 and type2=="lead":
-            return True
+            return 2
         elif metal_order==1 and type2=="tin":
-            return True
+            return 2
         elif metal_order==2 and type2=="iron":
-            return True
+            return 2
         elif metal_order==3 and type2=="copper":
-            return True
+            return 2
         elif metal_order==4 and type2=="silver":
-            return True
+            return 2
         elif metal_order==5 and type2=="gold":
-            return True
+            return 2
+        else:
+            return 0
+    return 0
 
-
-
-
-print(is_valid("quicksilver","lead",0))
