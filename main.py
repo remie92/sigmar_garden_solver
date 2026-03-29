@@ -1,60 +1,48 @@
 STATIC_SCREEN_POSITIONS=True
 
-
 from pynput import mouse
 import pyautogui
-from PIL import Image,ImageDraw, ImageFont
-from time import sleep
+from PIL import Image, ImageDraw, ImageFont, ImageTk
+import tkinter as tk
 
 from marble_detector import MarbleDetector
-
+from marble_types import marble_types
 from board import Board
-start_board=Board()
 
-
-
-marble_detector=MarbleDetector()
-
+start_board = Board()
+marble_detector = MarbleDetector()
 
 clicks = []
 TARGET_WIDTH = 833
 TARGET_HEIGHT = 688
 TARGET_RATIO = TARGET_WIDTH / TARGET_HEIGHT
 
-screen_start_height=59
-screen_middle_width=TARGET_WIDTH/2
-screen_vertical_spacing=(630-59)/10
-screen_horizontal_spacing=(747-84)/10
+screen_start_height = 59
+screen_middle_width = TARGET_WIDTH / 2
+screen_vertical_spacing = (630 - 59) / 10
+screen_horizontal_spacing = (747 - 84) / 10
 
-if STATIC_SCREEN_POSITIONS==False:
+if STATIC_SCREEN_POSITIONS == False:
     def on_click(x, y, button, pressed):
         if pressed:
-            print(f"Clicked at: ({x}, {y})")
             clicks.append((x, y))
             if len(clicks) == 3:
-                return False  
+                return False
 
     with mouse.Listener(on_click=on_click) as listener:
-        print("Click the top left of the dark background, and then the center dot of the golden marble. Lastly, the bottom right. The border of the dark triangles count as the background")
+        print("Click top-left, center, bottom-right")
         listener.join()
 else:
     clicks.append((2722, 162))
     clicks.append((3138, 505))
     clicks.append((3556, 850))
 
-
-(screen_x1,screen_y1),(screen_middle_x,screen_middle_y),(screen_x2,screen_y2)= clicks
-print(screen_x1,screen_y1,screen_x2,screen_y2)
+(screen_x1, screen_y1), (screen_middle_x, screen_middle_y), (screen_x2, screen_y2) = clicks
 
 left = min(screen_x1, screen_x2)
 right = max(screen_x1, screen_x2)
 top = min(screen_y1, screen_y2)
 bottom = max(screen_y1, screen_y2)
-
-width = right - left
-height = bottom - top
-
-print(f"Board is {width} pixels wide, and {height} pixels high!")
 
 half_w = min(screen_middle_x - left, right - screen_middle_x)
 half_h = min(screen_middle_y - top, bottom - screen_middle_y)
@@ -69,25 +57,13 @@ crop_right = int(screen_middle_x + half_w)
 crop_top = int(screen_middle_y - half_h)
 crop_bottom = int(screen_middle_y + half_h)
 
-print(f"Final crop: {(crop_left, crop_top, crop_right, crop_bottom)}")
-
 full_img = pyautogui.screenshot()
-
 img = full_img.crop((crop_left, crop_top, crop_right, crop_bottom))
 img = img.resize((TARGET_WIDTH, TARGET_HEIGHT))
 
-numbered_img=img.copy()
-type_img=img.copy()
-
-draw = ImageDraw.Draw(numbered_img)
-draw_type=ImageDraw.Draw(type_img)
-
-try:
-    font = ImageFont.truetype("arial.ttf", 20)
-except:
-    font = ImageFont.load_default()
-
-counter = 0
+# detection storage
+positions = []
+detected_types = []
 
 for i in range(0, 11):
     i_center_dist = abs(5 - i)
@@ -99,32 +75,95 @@ for i in range(0, 11):
         pixel_x = int(screen_middle_width + (j - middle_j) * screen_horizontal_spacing)
         pixel_y = int(i * screen_vertical_spacing + screen_start_height)
 
-        text = str(counter)
-        bbox = draw.textbbox((0, 0), text, font=font)
-        text_w = bbox[2] - bbox[0]
-        text_h = bbox[3] - bbox[1]
-        draw.text(
-            (pixel_x - text_w // 2, pixel_y - text_h // 2),
-            text,
-            fill=(255, 0, 0),
-            font=font
-        )
+        detection_size = 30
+        half = detection_size // 2
 
-        counter += 1
+        cropped = img.crop((pixel_x - half, pixel_y - half, pixel_x + half, pixel_y + half))
+        m_type = marble_detector.get_type_from_image(cropped)
 
-        detection_size=30
-        half=detection_size//2
+        positions.append((pixel_x, pixel_y))
+        detected_types.append(m_type)
 
-        cropped=img.crop((pixel_x-half,pixel_y-half,pixel_x+half,pixel_y+half))
-        type=marble_detector.get_type_from_image(cropped)
-        draw_type.text(
-            (pixel_x - text_w // 2, pixel_y - text_h // 2),
-            type,
-            fill=(255, 0, 0),
-            font=font
-        )
-        print(f"Processing image! At {int((counter/91)*100)}%")
+# ---------------- GUI ----------------
+selected_index = None
+final_types = None
 
-type_img.show()
-numbered_img.show()
-img.show()
+root = tk.Tk()
+root.title("Marble Editor")
+
+canvas = tk.Canvas(root, width=TARGET_WIDTH, height=TARGET_HEIGHT)
+canvas.pack()
+
+img_tk = ImageTk.PhotoImage(img)
+canvas.create_image(0, 0, anchor="nw", image=img_tk)
+
+highlight = None
+text_items = []
+
+# draw all detected types
+for i, (x, y) in enumerate(positions):
+    txt = canvas.create_text(x, y, text=detected_types[i], fill="red")
+    text_items.append(txt)
+
+label_var = tk.StringVar()
+label = tk.Label(root, textvariable=label_var)
+label.pack()
+
+
+def draw_highlight(idx):
+    global highlight
+    if highlight:
+        canvas.delete(highlight)
+
+    x, y = positions[idx]
+    r = 15
+    highlight = canvas.create_oval(x - r, y - r, x + r, y + r, outline="red", width=2)
+
+
+def update_text(idx):
+    canvas.itemconfig(text_items[idx], text=detected_types[idx])
+
+
+def on_click(event):
+    global selected_index
+    x, y = event.x, event.y
+
+    for i, (px, py) in enumerate(positions):
+        if abs(px - x) < 15 and abs(py - y) < 15:
+            selected_index = i
+            draw_highlight(i)
+            label_var.set(f"Selected {i}: {detected_types[i]}")
+            return
+
+
+def change_type(t):
+    if selected_index is None:
+        return
+
+    detected_types[selected_index] = t
+    update_text(selected_index)
+    label_var.set(f"Updated {selected_index} -> {t}")
+
+
+canvas.bind("<Button-1>", on_click)
+
+frame = tk.Frame(root)
+frame.pack()
+
+for t in marble_types:
+    btn = tk.Button(frame, text=t, command=lambda t=t: change_type(t))
+    btn.pack(side="left")
+
+
+def finish():
+    global final_types
+    final_types = detected_types.copy()
+    root.destroy()
+
+btn_done = tk.Button(root, text="Done", command=finish)
+btn_done.pack()
+
+root.mainloop()
+
+# program continues here after GUI closes
+print("Final types:", final_types)
