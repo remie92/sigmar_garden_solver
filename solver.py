@@ -27,7 +27,7 @@ class Solver:
                 board_list.append(board)
             counter+=1
             if counter%1000==0:
-                print(counter)
+                print(counter,checking_board.count_marbles())
 
         print(winning_board.moves)
 

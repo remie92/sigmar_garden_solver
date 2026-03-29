@@ -43,8 +43,17 @@ class Board:
                     if match_type==2:
                         new_board.metal_order+=1
                     new_board.moves.append((index1,index2))
+                    new_board.board[index1]=Marble()
+                    new_board.board[index2]=Marble()
                     new_boards.append(new_board)
         return  new_boards
+    
+    def count_marbles(self):
+        count=0
+        for i in  range(91):
+            if self.board[i].type!=None:
+                count+=1
+        return count
     
 
     def won_game(self):
