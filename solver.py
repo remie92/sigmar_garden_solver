@@ -28,8 +28,8 @@ class Solver:
             counter+=1
             if counter%1000==0:
                 print(counter,checking_board.count_marbles(),len(board_list))
-
-        print(winning_board.moves)
+        moves=winning_board.moves
+        return moves
 
 
     

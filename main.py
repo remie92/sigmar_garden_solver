@@ -4,7 +4,7 @@ from pynput import mouse
 import pyautogui
 from PIL import Image, ImageDraw, ImageFont, ImageTk
 import tkinter as tk
-
+import time
 from marble_detector import MarbleDetector
 from marble_types import marble_types
 from board import Board
@@ -180,5 +180,37 @@ print (start_board)
 
 solver=Solver()
 solver.set_board(start_board)
-solver.solve_board()
-print(solver.moves)
+winning_moves=solver.solve_board()
+
+
+
+
+def index_to_screen_pos(index):
+    """Convert a marble board index to an absolute screen coordinate."""
+    img_x, img_y = positions[index]
+
+    # Reverse the resize: map image pixels back to crop-space pixels
+    crop_w = crop_right - crop_left
+    crop_h = crop_bottom - crop_top
+
+    screen_x = crop_left + (img_x / TARGET_WIDTH) * crop_w
+    screen_y = crop_top  + (img_y / TARGET_HEIGHT) * crop_h
+
+    return int(screen_x), int(screen_y)
+
+
+def click_marble(index, delay=0.2):
+    """Move to and left-click a marble by its board index."""
+    x, y = index_to_screen_pos(index)
+    pyautogui.moveTo(x, y, duration=0.15)
+    pyautogui.click(x, y)
+    pyautogui.sleep(delay)
+
+for i in range(10,0,-1):
+    print(f"Starting in {i} seconds!")
+    time.sleep(1)
+
+for coord in winning_moves:
+    index1,index2=coord
+    click_marble(index1)
+    click_marble(index2)
