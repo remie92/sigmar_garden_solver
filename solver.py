@@ -18,6 +18,13 @@ class Solver:
         if marble==None:
             return False
         
+        marble_l=self.get_left_marble.type
+        marble_r=self.get_right_marble.type
+        marble_tl=self.get_top_left_marble.type
+        marble_tr=self.get_top_right_marble.type
+        marble_bl=self.get_bottom_left_marble.type
+        marble_br=self.get_bottom_right_marble.type
+        
     def get_left_marble(self,index):
         if index in [0,6,13,21,30,40,51,61,70,78,85]:
             return Marble()
