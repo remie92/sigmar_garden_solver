@@ -15,7 +15,7 @@ class Solver:
         board_list=[self.board]
         counter=0
         while found_win_state==False:
-            checking_board=board_list.pop(0)
+            checking_board=board_list.pop()
 
             if checking_board.won_game():
                 found_win_state=True
@@ -27,7 +27,7 @@ class Solver:
                 board_list.append(board)
             counter+=1
             if counter%1000==0:
-                print(counter,checking_board.count_marbles())
+                print(counter,checking_board.count_marbles(),len(board_list))
 
         print(winning_board.moves)
 

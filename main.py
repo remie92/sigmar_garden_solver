@@ -9,6 +9,7 @@ from marble_detector import MarbleDetector
 from marble_types import marble_types
 from board import Board
 from solver import Solver
+from rules import type_to_index
 
 start_board = Board()
 marble_detector = MarbleDetector()
@@ -174,7 +175,7 @@ root.mainloop()
 
 #Finally doing some calculating!
 for i in range(len(final_types)):
-    start_board.set_type(final_types[i],i)
+    start_board.set_type(type_to_index.get(final_types[i]),i)
 print (start_board)
 
 solver=Solver()

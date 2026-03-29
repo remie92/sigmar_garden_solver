@@ -57,7 +57,12 @@ class Board:
     
 
     def won_game(self):
-        return self.is_enabled(45)
+        for i in  range(91):
+            if i!=45:
+                if self.board[i].type!=None:
+                    return False
+        return True
+                
         
     
 
