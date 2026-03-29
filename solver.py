@@ -18,7 +18,53 @@ class Solver:
         if marble==None:
             return False
         
-    
+    def get_left_marble(self,index):
+        if index in [0,6,13,21,30,40,51,61,70,78,85]:
+            return Marble()
+        else:
+            return self.board.get_marble(index-1)
+        
+    def get_top_left_marble(self,index):
+        row=self.index_to_row(index)
+        if row==0 or index in [0,6,13,21,30,40]:
+            return Marble()
+        else:
+            prev_length=self.get_row_length(row-1)
+            max_length=max(prev_length,self.get_row_length(row))
+            return self.board.get_marble(index-max_length)
+        
+    def get_top_right_marble(self,index):
+        row=self.index_to_row(index)
+        if row==0 or index in [5,12,20,29,39,50]:
+            return Marble()
+        else:
+            prev_length=self.get_row_length(row-1)
+            max_length=max(prev_length,self.get_row_length(row))
+            return self.board.get_marble(index-max_length+1)
+        
+    def get_bottom_left_marble(self,index):
+        row=self.index_to_row(index)
+        if row==10 or index in [40,51,61,70,78,85]:
+            return Marble()
+        else:
+            prev_length=self.get_row_length(row-1)
+            max_length=max(prev_length,self.get_row_length(row))
+            return self.board.get_marble(index+max_length-1)
+        
+    def get_bottom_right_marble(self,index):
+        row=self.index_to_row(index)
+        if row==10 or index in [50,60,69,77,84,90]:
+            return Marble()
+        else:
+            prev_length=self.get_row_length(row-1)
+            max_length=max(prev_length,self.get_row_length(row))
+            return self.board.get_marble(index+max_length)
+        
+    def get_right_marble(self,index):
+        if index in [5,12,20,29,39,50,60,69,77,84,90]:
+            return Marble()
+        else:
+            return self.board.get_marble(index+1)
         
 
     def get_row_length(self,row):
