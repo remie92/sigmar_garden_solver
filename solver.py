@@ -10,62 +10,29 @@ class Solver:
         self.board=board
 
     def solve_board(self):
-        self.is_enabled(5)
-        pass
+        found_win_state=False
+        winning_board=None
+        board_list=[self.board]
+        counter=0
+        while found_win_state==False:
+            checking_board=board_list.pop(0)
 
-    def is_enabled(self,index):
-        marble=self.board.get_marble(index).type
-        if marble==None:
-            return False
-        
-        marble_l=self.get_left_marble.type
-        marble_r=self.get_right_marble.type
-        marble_tl=self.get_top_left_marble.type
-        marble_tr=self.get_top_right_marble.type
-        marble_bl=self.get_bottom_left_marble.type
-        marble_br=self.get_bottom_right_marble.type
-        
-    def get_left_marble(self,index):
-        if index in [0,6,13,21,30,40,51,61,70,78,85]:
-            return Marble()
-        else:
-            return self.board.get_marble(index-1)
-        
-    def get_top_left_marble(self,index):
-        row=self.index_to_row(index)
-        if row==0 or index in [0,6,13,21,30,40]:
-            return Marble()
-        else:
-            prev_length=self.get_row_length(row-1)
-            max_length=max(prev_length,self.get_row_length(row))
-            return self.board.get_marble(index-max_length)
-        
-    def get_top_right_marble(self,index):
-        row=self.index_to_row(index)
-        if row==0 or index in [5,12,20,29,39,50]:
-            return Marble()
-        else:
-            prev_length=self.get_row_length(row-1)
-            max_length=max(prev_length,self.get_row_length(row))
-            return self.board.get_marble(index-max_length+1)
-        
-    def get_bottom_left_marble(self,index):
-        row=self.index_to_row(index)
-        if row==10 or index in [40,51,61,70,78,85]:
-            return Marble()
-        else:
-            prev_length=self.get_row_length(row-1)
-            max_length=max(prev_length,self.get_row_length(row))
-            return self.board.get_marble(index+max_length-1)
-        
-    def get_bottom_right_marble(self,index):
-        row=self.index_to_row(index)
-        if row==10 or index in [50,60,69,77,84,90]:
-            return Marble()
-        else:
-            prev_length=self.get_row_length(row-1)
-            max_length=max(prev_length,self.get_row_length(row))
-            return self.board.get_marble(index+max_length)
+            if checking_board.won_game():
+                found_win_state=True
+                winning_board=checking_board
+                break
+
+            new_boards=checking_board.get_all_permutations()
+            for board in new_boards:
+                board_list.append(board)
+            counter+=1
+            if counter%1000==0:
+                print(counter)
+
+        print(winning_board.moves)
+
+
+    
         
     def get_right_marble(self,index):
         if index in [5,12,20,29,39,50,60,69,77,84,90]:
