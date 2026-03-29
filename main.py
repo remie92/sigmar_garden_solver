@@ -199,10 +199,10 @@ def index_to_screen_pos(index):
     return int(screen_x), int(screen_y)
 
 
-def click_marble(index, delay=0.2):
+def click_marble(index, delay=0.1):
     """Move to and left-click a marble by its board index."""
     x, y = index_to_screen_pos(index)
-    pyautogui.moveTo(x, y, duration=0.15)
+    pyautogui.moveTo(x, y, duration=0.05)
     pyautogui.click(x, y)
     pyautogui.sleep(delay)
 
