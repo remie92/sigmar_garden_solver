@@ -25,7 +25,13 @@ class Solver:
             new_boards=checking_board.get_all_permutations()
             new_boards.sort(key=lambda b: b.count_enabled_marbles(), reverse=True)
             for board in new_boards:
-                board_list.append(board)
+                id_string=board.generate_id_num()
+                adding=True
+                for double_board in  board_list:
+                    if id_string==double_board.generate_id_num():
+                        adding=False
+                if adding:
+                    board_list.append(board)
             counter+=1
             if counter%1000==0:
                 print(counter,checking_board.count_marbles(),len(board_list))

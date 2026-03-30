@@ -33,20 +33,38 @@ class Board:
             if self.is_enabled(i):
                 enabled_indexes.append(i)
         new_boards=[]
-        for i in range(len(enabled_indexes)-1):
+        if self.metal_order==5 and self.is_enabled(45):
+            new_board=self.copy()
+            new_board.moves.append((45))
+            new_board.board[45]=Marble()
+            new_boards.append(new_board)
+        for i in range(len(enabled_indexes)):
             index1=enabled_indexes[i]
-            for j in range(i+1,len(enabled_indexes)):
-                index2=enabled_indexes[j]
-                match_type=get_match(self.board[index1].type,self.board[index2].type,self.metal_order)
-                if match_type:
-                    new_board=self.copy()
-                    if match_type==2:
-                        new_board.metal_order+=1
-                    new_board.moves.append((index1,index2))
-                    new_board.board[index1]=Marble()
-                    new_board.board[index2]=Marble()
-                    new_boards.append(new_board)
+            for j in range(len(enabled_indexes)):
+                if  i!=j:
+                    index2=enabled_indexes[j]
+                    match_type=get_match(self.board[index1].type,self.board[index2].type,self.metal_order)
+                    if match_type:
+                        new_board=self.copy()
+                        if match_type==2:
+                            new_board.metal_order+=1
+                        new_board.moves.append((index1,index2))
+                        new_board.board[index1]=Marble()
+                        new_board.board[index2]=Marble()
+                        new_boards.append(new_board)
+            
         return  new_boards
+    
+    def generate_id_num(self):
+        id_num=0
+        for i in  range(91):
+            id=self.board[i].type
+            if id==None:
+                id=14
+            id_num+=pow(15,i)*id
+
+        return id_num
+
     
     def count_marbles(self):
         count=0
@@ -65,9 +83,8 @@ class Board:
 
     def won_game(self):
         for i in  range(91):
-            if i!=45:
-                if self.board[i].type!=None:
-                    return False
+            if self.board[i].type!=None:
+                return False
         return True
                 
         

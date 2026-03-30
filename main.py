@@ -211,6 +211,10 @@ for i in range(10,0,-1):
     time.sleep(1)
 
 for coord in winning_moves:
-    index1,index2=coord
-    click_marble(index1)
-    click_marble(index2)
+    if type(coord)==type((1,2)):
+        index1,index2=coord
+        click_marble(index1)
+        click_marble(index2)
+    else:
+        click_marble(coord)
+        print("GOLD  CLICK")
