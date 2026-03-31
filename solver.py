@@ -1,6 +1,12 @@
 from board import Board
 from marble import Marble
 from rules import get_match
+import os
+import sys
+import time
+import signal
+import subprocess
+import pyautogui
 class Solver:
     def __init__(self,board=None):
         self.board=board
@@ -16,12 +22,12 @@ class Solver:
         counter=0
         while found_win_state==False:
             checking_board=board_list.pop()
-
+ 
             if checking_board.won_game():
                 found_win_state=True
                 winning_board=checking_board
                 break
-
+ 
             new_boards=checking_board.get_all_permutations()
             new_boards.sort(key=lambda b: b.count_enabled_marbles(), reverse=True)
             for board in new_boards:
@@ -35,6 +41,27 @@ class Solver:
             counter+=1
             if counter%1000==0:
                 print(counter,checking_board.count_marbles(),len(board_list))
+ 
+            if counter > 4000:
+                # Double-click at coordinates (2795, 886) with 0.5s gap
+                pyautogui.click(2795, 886)
+                pyautogui.move(0,1)
+                time.sleep(0.5)
+                pyautogui.click(2795, 886)
+                pyautogui.move(0,1)
+ 
+                # Wait 6 seconds before restarting
+                time.sleep(6)
+ 
+                # Launch a new independent instance of main.py
+                subprocess.Popen(
+                    [sys.executable, "main.py"],
+                    start_new_session=True
+                )
+ 
+                # Kill own process without affecting the newly spawned one
+                os.kill(os.getpid(), signal.SIGTERM)
+ 
         moves=winning_board.moves
         return moves
 

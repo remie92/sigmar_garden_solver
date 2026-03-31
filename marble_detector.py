@@ -64,6 +64,32 @@ class MarbleDetector:
                         best_score = final_score
                         best_type = marble_type
 
+        if best_type=="earth":
+            for marble_type, ref_arr, ref_color in self.marble_images:
+                color_score = self._color_distance(img_color, ref_color)
+
+                ref_brightness = ref_arr.mean(axis=2)
+
+                for dx in range(-2, 3):
+                    for dy in range(-2, 3):
+                        self.counter += 1
+                        shape_score = self._shifted_shape_score(
+                            img_brightness, ref_brightness, dx, dy, h, w
+                        )
+                        if shape_score is None:
+                            continue
+
+                        # Both scores are now in the same ~0-1 range
+                        final_score = shape_score * 0.9 + color_score * 0.1
+                        if(marble_type=="water"):
+                            final_score/=1.4
+
+
+                        if final_score < best_score:
+                            best_score = final_score
+                            best_type = marble_type
+
+
         return best_type
 
     # ------------------------------------------------------------------
